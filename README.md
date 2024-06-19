@@ -1,8 +1,8 @@
 ## Screenshots
 
-![login-screen](frontend\src\assets\image-1.png)
+![login-screen](https://github.com/ShailavMalik/Chatty/blob/main/frontend/src/assets/image-1.png)
 
-![Conversation](frontend\src\assets\image.png)
+![Conversation](https://github.com/ShailavMalik/Chatty/blob/main/frontend/src/assets/image.png)
 
 <br>
 
