@@ -1,5 +1,16 @@
-## Screenshots
 
+# Live deployment of the webpage
+
+visit-
+https://chatty-m3ui.onrender.com/
+
+
+or scan the QR code 👇🏻  
+
+![image](https://github.com/ShailavMalik/Chatty/assets/86142500/3e4e92e6-e7a0-430e-b17f-19b478322291)
+<br>
+
+# Screenshots
 ![login-screen](https://github.com/ShailavMalik/Chatty/blob/main/frontend/src/assets/image-1.png)
 
 ![Conversation](https://github.com/ShailavMalik/Chatty/blob/main/frontend/src/assets/image.png)
