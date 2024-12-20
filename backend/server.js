@@ -43,7 +43,7 @@ app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
 // Handle all other routes by serving the frontend's index.html file
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  res.json({ message: "Welcome to Chatty!" });
 });
 
 // Start the server and connect to MongoDB
