@@ -1,27 +1,15 @@
 {
-	"name": "chatty",
-	"version": "1.0.0",
-	"description": "real time chat app",
-	"main": "server.js",
-	"scripts": {
-		"server": "nodemon backend/server.js",
-		"start": "node backend/server.js",
-		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
-	},
-	"type": "module",
-	"keywords": [],
-	"author": "Shailav Malik",
-	"license": "ISC",
-	"dependencies": {
-		"bcryptjs": "^2.4.3",
-		"cookie-parser": "^1.4.6",
-		"dotenv": "^16.4.5",
-		"express": "^4.18.2",
-		"jsonwebtoken": "^9.0.2",
-		"mongoose": "^8.1.1",
-		"socket.io": "^4.7.4"
-	},
-	"devDependencies": {
-		"nodemon": "^3.0.3"
-	}
+  "name": "chatty",
+  "version": "1.0.0",
+  "description": "Real-time chat application with React frontend and Node.js backend",
+  "author": "John",
+  "license": "ISC",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
+    "install-all": "npm install && npm install --prefix frontend && npm install --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }
