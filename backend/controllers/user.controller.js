@@ -9,13 +9,18 @@ export const getUsersForSidebar = async (req, res) => {
       _id: { $ne: loggedInUserId },
     }).select("-password");
 
-    const usersToBackfill = filteredUsers.filter((user) => !user.profilePic);
+    const usersToBackfill = filteredUsers.filter(
+      (user) =>
+        !user.profilePic ||
+        user.profilePic.startsWith("https://avatar.iran.liara.run"),
+    );
     if (usersToBackfill.length > 0) {
       await Promise.all(
         usersToBackfill.map((user) => {
           user.profilePic = buildAnimeProfilePic({
             gender: user.gender,
             username: user.username,
+            fullName: user.fullName,
           });
           return user.save();
         }),

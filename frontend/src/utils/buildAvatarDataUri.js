@@ -19,7 +19,7 @@ const getInitials = (fullName, username) => {
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 };
 
-const buildAnimeProfilePic = ({ gender, username, fullName }) => {
+const buildAvatarDataUri = ({ gender, username, fullName }) => {
   const normalizedGender = gender === "female" ? "female" : "male";
   const seed = `${normalizedGender}:${username || "chatty-user"}:${fullName || ""}`;
   const hash = hashString(seed);
@@ -63,4 +63,4 @@ const buildAnimeProfilePic = ({ gender, username, fullName }) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg.trim())}`;
 };
 
-export default buildAnimeProfilePic;
+export default buildAvatarDataUri;

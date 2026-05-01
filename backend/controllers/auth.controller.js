@@ -21,7 +21,7 @@ export const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const profilePic = buildAnimeProfilePic({ gender, username });
+    const profilePic = buildAnimeProfilePic({ gender, username, fullName });
 
     const newUser = new User({
       fullName,
@@ -40,6 +40,7 @@ export const signup = async (req, res) => {
         _id: newUser._id,
         fullName: newUser.fullName,
         username: newUser.username,
+        gender: newUser.gender,
         profilePic: newUser.profilePic,
       });
     } else {
@@ -64,10 +65,14 @@ export const login = async (req, res) => {
       return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    if (!user.profilePic) {
+    if (
+      !user.profilePic ||
+      user.profilePic.startsWith("https://avatar.iran.liara.run")
+    ) {
       user.profilePic = buildAnimeProfilePic({
         gender: user.gender,
         username: user.username,
+        fullName: user.fullName,
       });
       await user.save();
     }
@@ -78,6 +83,7 @@ export const login = async (req, res) => {
       _id: user._id,
       fullName: user.fullName,
       username: user.username,
+      gender: user.gender,
       profilePic: user.profilePic,
     });
   } catch (error) {

@@ -9,6 +9,21 @@ const useListenMessages = () => {
   const { socket } = useSocketContext();
   const { setMessages } = useConversation();
 
+  const updateMessageStatus = (messageIds, updates) => {
+    setMessages((currentMessages) =>
+      currentMessages.map((message) => {
+        if (!messageIds.includes(message._id)) {
+          return message;
+        }
+
+        return {
+          ...message,
+          ...updates,
+        };
+      }),
+    );
+  };
+
   useEffect(() => {
     socket?.on("newMessage", (newMessage) => {
       newMessage.shouldShake = true;
@@ -17,7 +32,19 @@ const useListenMessages = () => {
       setMessages((currentMessages) => [...currentMessages, newMessage]);
     });
 
-    return () => socket?.off("newMessage");
+    socket?.on("messageDelivered", ({ messageId, deliveredAt }) => {
+      updateMessageStatus([messageId], { deliveredAt });
+    });
+
+    socket?.on("messagesSeen", ({ messageIds, seenAt }) => {
+      updateMessageStatus(messageIds, { deliveredAt: seenAt, seenAt });
+    });
+
+    return () => {
+      socket?.off("newMessage");
+      socket?.off("messageDelivered");
+      socket?.off("messagesSeen");
+    };
   }, [socket, setMessages]);
 };
 export default useListenMessages;
