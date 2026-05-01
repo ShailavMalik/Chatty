@@ -1,371 +1,339 @@
 # Chatty - Real-Time Chat Application
 
-A full-stack real-time messaging application built with the MERN stack, Socket.io, and modern web technologies. Users can create accounts, authenticate securely with JWT, and communicate with other users in real-time.
+Chatty is a MERN stack chat application with JWT authentication, Socket.io-powered realtime messaging, and a responsive React UI. The frontend is designed for Vercel deployment, while the backend is designed for Railway deployment with persistent Socket.io connections.
 
-## 📋 Table of Contents
+## Overview
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Installation & Setup](#installation--setup)
-- [Running the Application](#running-the-application)
-- [API Endpoints](#api-endpoints)
-- [WebSocket Events](#websocket-events)
-- [Database Schema](#database-schema)
-- [Environment Variables](#environment-variables)
-- [Key Features Explained](#key-features-explained)
+The application is split into two deployable parts:
 
----
+- Frontend: React + Vite + TailwindCSS + DaisyUI, deployed on Vercel
+- Backend: Node.js + Express + MongoDB + Socket.io, deployed on Railway
 
-## ✨ Features
+The frontend communicates with the backend over HTTP for auth and data fetching, and over Socket.io for realtime updates such as new messages, typing indicators, and online status.
 
-- 🌟 **Tech Stack**: MERN (MongoDB, Express, React, Node.js) + Socket.io + TailwindCSS + Daisy UI
-- 🎃 **Authentication & Authorization**: Secure JWT-based authentication with HTTP-only cookies
-- 👾 **Real-Time Messaging**: Instant message delivery using WebSocket (Socket.io)
-- 🚀 **Online User Status**: Real-time presence tracking with Socket.io and React Context
-- 👌 **Global State Management**: Zustand for efficient client-side state
-- 🐞 **Error Handling**: Comprehensive error handling on both frontend and backend
-- 🔐 **Route Protection**: Middleware-based protected routes
-- 🎨 **Modern UI**: Responsive design with TailwindCSS and Daisy UI components
-- ⚡ **Message Timestamps**: Formatted time display for each message
+## Features
 
----
+- JWT-based auth with HTTP-only cookies
+- Realtime one-to-one messaging with Socket.io
+- Online user tracking
+- Typing and stop-typing indicators
+- Responsive chat layout for desktop and mobile
+- Sidebar with current-user card, search, conversation list, and logout
+- Backend profile picture assignment at user creation
+- Gender-aware anime avatar generation for user profiles
+- Protected routes for users, messages, and auth state
 
-## 🛠 Tech Stack
+## Tech Stack
 
-### **Frontend**
+### Frontend
 
-- **React 18.2.0** - UI library
-- **Vite 5.0.8** - Build tool and dev server
-- **Socket.io Client 4.7.4** - WebSocket communication
-- **React Router DOM 6.21.3** - Client-side routing
-- **Zustand 4.5.0** - Lightweight state management
-- **TailwindCSS 3.4.1** - Utility-first CSS framework
-- **Daisy UI 4.6.1** - Component library built on TailwindCSS
-- **React Hot Toast 2.4.1** - Toast notifications
-- **React Icons 5.0.1** - Icon library
-- **PostCSS & Autoprefixer** - CSS processing
+- React 18
+- Vite
+- React Router DOM
+- Zustand for conversation state
+- Socket.io client
+- TailwindCSS
+- DaisyUI
+- React Hot Toast
+- React Icons
 
-### **Backend**
+### Backend
 
-- **Node.js with Express 4.18.2** - Server framework
-- **Socket.io 4.7.4** - Real-time bidirectional communication
-- **MongoDB 8.1.1 with Mongoose** - NoSQL database
-- **JWT (jsonwebtoken 9.0.2)** - Token-based authentication
-- **Bcryptjs 2.4.3** - Password hashing
-- **Cookie Parser 1.4.6** - Cookie middleware
-- **CORS 2.8.5** - Cross-origin resource sharing
-- **Dotenv 16.4.5** - Environment variable management
-- **Nodemon 3.0.3** - Development hot reload
+- Node.js
+- Express
+- MongoDB with Mongoose
+- Socket.io server
+- JWT
+- bcryptjs
+- cookie-parser
+- cors
+- dotenv
 
-### **Development Tools**
+## How the App Works
 
-- **Concurrently 8.2.2** - Run multiple npm scripts simultaneously
+### Authentication flow
 
----
+1. A user signs up or logs in from the frontend.
+2. The backend validates credentials and sets an HTTP-only JWT cookie.
+3. The frontend stores the returned user object in localStorage as `chat-user`.
+4. `AuthContext` restores that user on page refresh.
+5. Protected API routes use `protectRoute` to verify the cookie and attach `req.user`.
 
-## 📁 Project Structure
+### Messaging flow
 
-```
-chatty/
-├── package.json                      # Root package (dev only: concurrently)
-├── README.md                         # This file
+1. The user selects a conversation from the sidebar.
+2. The frontend loads the conversation messages through `GET /api/messages/:id`.
+3. When the user sends a message, the frontend posts to `POST /api/messages/send/:id`.
+4. The backend stores the message in MongoDB and emits a Socket.io `newMessage` event to the receiver.
+5. The receiving client appends the message in realtime and plays the notification sound.
+
+### Presence and typing flow
+
+1. On login, the frontend creates a Socket.io client connection and sends the logged-in user id in the handshake query.
+2. The backend stores the socket id in memory and broadcasts the current online user ids.
+3. Typing events are emitted to the target user with `typing` and `stopTyping` events.
+4. The UI shows a typing label in the message header when the selected conversation partner is typing.
+
+## Realtime Socket.io Events
+
+### Client to server
+
+- `typing`
+- `stopTyping`
+
+### Server to client
+
+- `getOnlineUsers`
+- `typing`
+- `stopTyping`
+- `newMessage`
+
+## Project Structure
+
+```text
+Chatty/
+├── package.json
 ├── backend/
-│   ├── package.json                 # Backend dependencies
-│   ├── server.js                    # Express server entry point
-│   ├── .env                         # Backend environment variables
-│   ├── vercel.json                  # Vercel deployment config
+│   ├── package.json
+│   ├── server.js
+│   ├── vercel.json
+│   ├── Procfile
 │   ├── controllers/
-│   │   ├── auth.controller.js       # Login, signup, logout logic
-│   │   ├── message.controller.js    # Message CRUD operations
-│   │   └── user.controller.js       # User profile operations
 │   ├── db/
-│   │   └── connectToMongoDB.js      # MongoDB connection
 │   ├── middleware/
-│   │   └── protectRoute.js          # JWT authentication middleware
 │   ├── models/
-│   │   ├── user.model.js            # User schema
-│   │   ├── conversation.model.js    # Conversation schema
-│   │   └── message.model.js         # Message schema
 │   ├── routes/
-│   │   ├── auth.routes.js           # /api/auth endpoints
-│   │   ├── user.routes.js           # /api/users endpoints
-│   │   └── message.routes.js        # /api/messages endpoints
 │   ├── socket/
-│   │   └── socket.js                # Socket.io event handlers
 │   └── utils/
-│       └── generateToken.js         # JWT token generation
-│
-├── frontend/
-│   ├── package.json                 # Frontend dependencies
-│   ├── vite.config.js               # Vite configuration
-│   ├── tailwind.config.js           # TailwindCSS configuration
-│   ├── postcss.config.js            # PostCSS plugins
-│   ├── index.html                   # HTML entry point
-│   ├── public/                      # Static assets
-│   └── src/
-│       ├── main.jsx                 # React entry point
-│       ├── App.jsx                  # Root component
-│       ├── App.css                  # Global styles
-│       ├── index.css                # Base styles
-│       ├── components/
-│       │   ├── messages/
-│       │   │   ├── Message.jsx      # Single message display
-│       │   │   ├── MessageContainer.jsx  # Messages list
-│       │   │   ├── MessageInput.jsx # Input form
-│       │   │   └── Messages.jsx     # Messages wrapper
-│       │   ├── sidebar/
-│       │   │   ├── Conversation.jsx # Single conversation item
-│       │   │   ├── Conversations.jsx # Conversations list
-│       │   │   ├── SearchInput.jsx  # Search users
-│       │   │   ├── LogoutButton.jsx # Logout button
-│       │   │   └── Sidebar.jsx      # Sidebar wrapper
-│       │   └── skeletons/
-│       │       └── MessageSkeleton.jsx # Loading skeleton
-│       ├── pages/
-│       │   ├── home/
-│       │   │   └── Home.jsx         # Main chat page
-│       │   ├── login/
-│       │   │   └── Login.jsx        # Login page
-│       │   └── signup/
-│       │       ├── SignUp.jsx       # Signup page
-│       │       └── GenderCheckbox.jsx # Gender select
-│       ├── context/
-│       │   ├── AuthContext.jsx      # Auth state provider
-│       │   └── SocketContext.jsx    # Socket.io provider
-│       ├── hooks/
-│       │   ├── useGetConversations.js
-│       │   ├── useGetMessages.js
-│       │   ├── useListenMessages.js # Real-time message listener
-│       │   ├── useLogin.js
-│       │   ├── useLogout.js
-│       │   ├── useSendMessage.js
-│       │   └── useSignup.js
-│       ├── zustand/
-│       │   └── useConversation.js   # Global conversation state
-│       ├── utils/
-│       │   ├── emojis.js           # Emoji data
-│       │   └── extractTime.js      # Time formatting utility
-│       └── assets/
-│           └── sounds/              # Notification sounds
+└── frontend/
+    ├── package.json
+    ├── vite.config.js
+    ├── vercel.json
+    └── src/
+        ├── components/
+        ├── context/
+        ├── hooks/
+        ├── pages/
+        ├── utils/
+        └── zustand/
 ```
 
----
+## Backend Architecture
 
-## 🚀 Installation & Setup
+### Entry point
+
+`backend/server.js` initializes Express, sets up CORS, mounts routes, and starts the HTTP server exported from `backend/socket/socket.js`.
+
+### Socket server
+
+`backend/socket/socket.js` creates the HTTP server and Socket.io instance, keeps an in-memory `userSocketMap`, and handles:
+
+- user connection
+- user disconnection
+- online user broadcast
+- typing relay
+- stop-typing relay
+
+### API routes
+
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/users`
+- `GET /api/messages/:id`
+- `POST /api/messages/send/:id`
+
+### Models
+
+#### User
+
+Current user fields stored in MongoDB:
+
+- `fullName`
+- `username`
+- `password`
+- `gender`
+- `profilePic`
+- timestamps
+
+#### Conversation
+
+Conversation documents store:
+
+- `participants`
+- `messages`
+
+#### Message
+
+Message documents store:
+
+- `senderId`
+- `receiverId`
+- `message`
+- timestamps
+
+## Frontend Architecture
+
+### Contexts
+
+- `AuthContext` stores the authenticated user in memory and restores it from localStorage.
+- `SocketContext` creates the Socket.io client connection and exposes `socket` and `onlineUsers`.
+
+### State management
+
+- `useConversation` keeps the selected conversation and message list in Zustand.
+- Conversation selection controls what is rendered in the message panel.
+- Messages are loaded when a conversation changes and appended when `newMessage` arrives.
+
+### Hooks
+
+- `useSignup`, `useLogin`, and `useLogout` manage auth requests.
+- `useGetConversations` loads the sidebar user list.
+- `useGetMessages` loads messages for the selected conversation.
+- `useSendMessage` sends new messages and updates local state.
+- `useListenMessages` subscribes to Socket.io `newMessage` events.
+
+### Responsive UI behavior
+
+- On desktop, the chat shell is centered and constrained to a smaller max width.
+- On mobile, the sidebar and chat panel switch between views instead of forcing both into one column.
+- The current logged-in user is shown in the sidebar.
+- User avatars are rendered from saved profile images, not random emoji badges.
+
+## Realtime Avatar Generation
+
+When a user signs up, the backend assigns a gender-aware anime avatar URL and saves it in MongoDB as `profilePic`.
+
+Avatar generation rules:
+
+- male users get a male anime avatar endpoint
+- female users get a female anime avatar endpoint
+- the username is used as a seed so avatars stay unique per account
+- missing avatars are backfilled on login or sidebar fetch for older users
+
+This means the avatar is not generated in the browser; it is part of the user data stored in the database.
+
+## Deployment
+
+### Frontend on Vercel
+
+The frontend has a `frontend/vercel.json` file for SPA routing.
+
+Required frontend environment variables on Vercel:
+
+- `VITE_API_BASE_URL` or `VITE_BACKEND_URL`
+- `VITE_SOCKET_URL` if the socket URL is different from the API base URL
+
+Example:
+
+```env
+VITE_API_BASE_URL=https://your-railway-backend.up.railway.app
+VITE_SOCKET_URL=https://your-railway-backend.up.railway.app
+```
+
+### Backend on Railway
+
+The backend includes a `backend/Procfile` with `web: npm start`.
+
+Required Railway environment variables:
+
+- `MONGO_DB_URL`
+- `NODE_ENV=production`
+- `CLIENT_URL` or `FRONTEND_URL` pointing to the deployed Vercel frontend
+- `PORT` is assigned by Railway automatically
+
+Example:
+
+```env
+MONGO_DB_URL=mongodb+srv://...
+NODE_ENV=production
+CLIENT_URL=https://your-vercel-app.vercel.app
+FRONTEND_URL=https://your-vercel-app.vercel.app
+```
+
+### Deployment notes
+
+- The backend uses CORS with credentials enabled.
+- JWT cookies are configured for cross-site production use.
+- Socket.io is configured to allow the deployed frontend origin.
+- Because the backend is stateful for connected sockets, it should run as a normal Node service, not a serverless function.
+
+## Local Development
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- npm or yarn
-- MongoDB account (MongoDB Atlas recommended)
+- Node.js 14+
+- npm
+- MongoDB connection string
 
-### Step 1: Clone & Navigate
-
-```bash
-cd Chatty
-```
-
-### Step 2: Install All Dependencies
+### Install dependencies
 
 ```bash
 npm run install-all
 ```
 
-This installs dependencies for root, frontend, and backend folders.
-
-### Step 3: Configure Environment Variables
-
-**Backend (.env)**
-Create `backend/.env` with:
-
-```env
-MONGO_DB_URL=mongodb+srv://username:password@cluster.mongodb.net/chatty
-PORT=5000
-JWT_SECRET=your-secret-key-here
-NODE_ENV=development
-```
-
-**Frontend**
-Frontend uses relative API paths (`/api`) proxied through Vite dev server to `http://localhost:5000/api`.
-
-### Step 4: Start Development
+### Start development servers
 
 ```bash
 npm run dev
 ```
 
-This runs **both frontend and backend concurrently**:
+This runs the frontend and backend together using `concurrently`.
 
-- **Frontend**: http://localhost:5173 (Vite)
-- **Backend**: http://localhost:5000
-
----
-
-## 🏃 Running the Application
-
-### Development Mode (Both Frontend & Backend)
+### Frontend only
 
 ```bash
+cd frontend
 npm run dev
 ```
 
-### Backend Only
+### Backend only
 
 ```bash
-cd backend && npm run dev
+cd backend
+npm run dev
 ```
 
-### Frontend Only
-
-```bash
-cd frontend && npm run dev
-```
-
-### Production Build
-
-```bash
-npm run build
-```
-
-Builds the frontend for production.
-
----
-
-## 🔌 API Endpoints
-
-All API requests use the base URL: `http://localhost:5000/api`
-
-### Authentication Routes (`/api/auth`)
-
-- `POST /auth/signup` - Register a new user
-- `POST /auth/login` - User login
-- `POST /auth/logout` - User logout
-
-### User Routes (`/api/users`)
-
-- `GET /users` - Get all users (protected)
-- `GET /users/:id` - Get user by ID (protected)
-- `PUT /users/:id` - Update user profile (protected)
-
-### Message Routes (`/api/messages`)
-
-- `GET /messages/conversations` - Get all conversations (protected)
-- `GET /messages/:conversationId` - Get messages in a conversation (protected)
-- `POST /messages/send/:conversationId` - Send message (protected)
-
----
-
-## 🔄 WebSocket Events
-
-### Client → Server
-
-- `message:send` - User sends a message
-- `user:typing` - User is typing indicator
-- `user:online` - User comes online
-
-### Server → Client
-
-- `message:new` - New message received
-- `user:typing` - Someone is typing
-- `user:status` - User online/offline status
-- `conversation:updated` - Conversation list changed
-
----
-
-## 💾 Database Schema
-
-### User Model
-
-```javascript
-{
-  username: String (unique),
-  email: String (unique),
-  password: String (hashed),
-  gender: String (male/female/other),
-  avatar: String (profile picture URL),
-  createdAt: Date
-}
-```
-
-### Conversation Model
-
-```javascript
-{
-  participants: [ObjectId], // User IDs
-  lastMessage: String,
-  updatedAt: Date,
-  createdAt: Date
-}
-```
-
-### Message Model
-
-```javascript
-{
-  sender: ObjectId (User reference),
-  conversationId: ObjectId (Conversation reference),
-  content: String,
-  createdAt: Date
-}
-```
-
----
-
-## 🔑 Environment Variables
+## Environment Variables
 
 ### Backend `.env`
 
 ```env
-MONGO_DB_URL          # MongoDB connection string
-PORT                  # Server port (default: 5000)
-JWT_SECRET            # Secret key for JWT signing
-NODE_ENV              # development/production
+MONGO_DB_URL=your-mongodb-connection-string
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 ```
 
----
+### Frontend `.env`
 
-## 📖 Key Features Explained
+```env
+VITE_API_BASE_URL=http://localhost:5000
+VITE_SOCKET_URL=http://localhost:5000
+```
 
-### 1. **Real-Time Messaging**
+## Notes for Production
 
-Uses Socket.io to establish persistent WebSocket connections between client and server. Messages are sent and received instantly without page refresh.
+- The frontend talks to Railway through the deployed backend URL.
+- Socket connections should point to the same Railway backend host.
+- Auth relies on cookies, so the frontend origin must be allowed in backend CORS.
+- Realtime presence is based on the in-memory socket map, so it resets when the backend restarts.
 
-### 2. **JWT Authentication**
+## Validation
 
-- User credentials are exchanged for a JWT token
-- Token is stored in HTTP-only cookie (secure)
-- Token is verified on protected routes via `protectRoute` middleware
+The frontend production build passes after the current changes.
 
-### 3. **Online Status**
+```bash
+npm run build --prefix frontend
+```
 
-Socket.io events track user connection/disconnection. Frontend Context API broadcasts online users to the UI in real-time.
+## Summary
 
-### 4. **State Management**
+Chatty is a full-stack realtime chat application with:
 
-- **Zustand**: Manages conversation selection and message history
-- **React Context**: Handles auth state and Socket.io instance
-- **Local Storage**: Persists user data across page refreshes
-
-### 5. **Error Handling**
-
-- Backend returns structured error responses with status codes
-- Frontend uses React Hot Toast for user-friendly error messages
-- Protected routes prevent unauthorized access
-
-### 6. **Responsive Design**
-
-TailwindCSS + Daisy UI components ensure the app works seamlessly on desktop, tablet, and mobile devices.
-
----
-
-## 📝 Notes
-
-- Backend runs on `port 5000`
-- Frontend development server (Vite) runs on `port 5173`
-- Vite proxy at `/api` routes requests to backend
-- Socket.io connects to `http://localhost:5000` on localhost
-- JWT tokens expire based on backend configuration
-- All passwords are hashed with bcryptjs before storage
-
----
+- MongoDB for persistence
+- Express and Socket.io on Railway
+- React and Vite on Vercel
+- JWT auth through HTTP-only cookies
+- realtime messaging, typing indicators, and presence updates
+- gender-aware anime profile pictures stored in the database

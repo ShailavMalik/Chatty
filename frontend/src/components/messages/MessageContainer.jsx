@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useConversation from "../../zustand/useConversation";
 import MessageInput from "./MessageInput";
 import Messages from "./Messages";
@@ -11,6 +11,7 @@ const MessageContainer = () => {
   const { selectedConversation, setSelectedConversation } = useConversation();
   const { socket } = useSocketContext();
   const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     // cleanup function (unmounts)
@@ -23,12 +24,25 @@ const MessageContainer = () => {
     const handleTyping = ({ senderId }) => {
       if (senderId === selectedConversation._id) {
         setIsTyping(true);
+
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+        }, 1500);
       }
     };
 
     const handleStopTyping = ({ senderId }) => {
       if (senderId === selectedConversation._id) {
         setIsTyping(false);
+
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = null;
+        }
       }
     };
 
@@ -38,6 +52,10 @@ const MessageContainer = () => {
     return () => {
       socket.off("typing", handleTyping);
       socket.off("stopTyping", handleStopTyping);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
       setIsTyping(false);
     };
   }, [socket, selectedConversation]);
@@ -61,13 +79,18 @@ const MessageContainer = () => {
               <span className="truncate font-bold text-white">
                 {selectedConversation.fullName}
               </span>
-              {isTyping && (
-                <span className="ml-3 text-sm font-semibold text-emerald-300">
-                  typing...
-                </span>
-              )}
             </div>
           </div>
+          {isTyping && (
+            <div className="mx-4 mb-2 flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100 shadow-sm backdrop-blur-sm">
+              <span>{selectedConversation.fullName} is typing</span>
+              <span className="flex items-center gap-1" aria-hidden="true">
+                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-200" />
+                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-200" />
+                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-200" />
+              </span>
+            </div>
+          )}
           <Messages />
           <MessageInput />
         </>

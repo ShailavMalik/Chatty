@@ -30,6 +30,20 @@ const MessageInput = () => {
 
     if (!socket || !selectedConversation || !authUser) return;
 
+    if (!value.trim()) {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+
+      socket.emit("stopTyping", {
+        receiverId: selectedConversation._id,
+        senderId: authUser._id,
+      });
+
+      return;
+    }
+
     socket.emit("typing", {
       receiverId: selectedConversation._id,
       senderId: authUser._id,
@@ -52,6 +66,7 @@ const MessageInput = () => {
     if (!message) return;
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
     }
     socket?.emit("stopTyping", {
       receiverId: selectedConversation?._id,
