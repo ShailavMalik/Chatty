@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import Message from "../models/message.model.js";
 
 const app = express();
 
@@ -54,6 +55,44 @@ io.on("connection", (socket) => {
 
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("stopTyping", { senderId });
+    }
+  });
+
+  socket.on("markMessagesSeen", async ({ senderId, messageIds }) => {
+    const receiverId = socket.handshake.query.userId;
+
+    if (
+      !senderId ||
+      !receiverId ||
+      !Array.isArray(messageIds) ||
+      messageIds.length === 0
+    ) {
+      return;
+    }
+
+    const seenAt = new Date();
+
+    await Message.updateMany(
+      {
+        _id: { $in: messageIds },
+        senderId,
+        receiverId,
+        seenAt: null,
+      },
+      {
+        $set: {
+          deliveredAt: seenAt,
+          seenAt,
+        },
+      },
+    );
+
+    const senderSocketId = userSocketMap[senderId];
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messagesSeen", {
+        messageIds: messageIds.map((messageId) => messageId.toString()),
+        seenAt,
+      });
     }
   });
 

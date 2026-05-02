@@ -123,6 +123,11 @@ const useListenMessages = () => {
 
       newMessage.shouldShake = true;
       setMessages((currentMessages) => [...currentMessages, newMessage]);
+
+      socket?.emit("markMessagesSeen", {
+        senderId,
+        messageIds: [newMessage._id],
+      });
     });
 
     socket?.on("typing", ({ senderId }) => {
