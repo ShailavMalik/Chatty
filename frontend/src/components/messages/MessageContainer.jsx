@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import useConversation from "../../zustand/useConversation";
 import MessageInput from "./MessageInput";
 import Messages from "./Messages";
@@ -7,13 +7,23 @@ import { FiArrowLeft } from "react-icons/fi";
 import { useAuthContext } from "../../context/AuthContext";
 
 const MessageContainer = () => {
-  const { selectedConversation, setSelectedConversation, typingConversations } =
-    useConversation();
+  const {
+    selectedConversation,
+    setSelectedConversation,
+    typingConversations,
+    clearTypingConversation,
+  } = useConversation();
 
   useEffect(() => {
     // cleanup function (unmounts)
     return () => setSelectedConversation(null);
   }, [setSelectedConversation]);
+
+  useEffect(() => {
+    if (selectedConversation?._id) {
+      clearTypingConversation(selectedConversation._id);
+    }
+  }, [clearTypingConversation, selectedConversation?._id]);
 
   const isTyping =
     selectedConversation ?
