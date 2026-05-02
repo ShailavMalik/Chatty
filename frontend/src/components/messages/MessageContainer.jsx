@@ -1,67 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import useConversation from "../../zustand/useConversation";
 import MessageInput from "./MessageInput";
 import Messages from "./Messages";
 import { TiMessages } from "react-icons/ti";
 import { FiArrowLeft } from "react-icons/fi";
 import { useAuthContext } from "../../context/AuthContext";
-import { useSocketContext } from "../../context/SocketContext";
 
 const MessageContainer = () => {
-  const {
-    selectedConversation,
-    setSelectedConversation,
-    setTypingConversationId,
-  } = useConversation();
-  const { socket } = useSocketContext();
-  const typingTimeoutRef = useRef(null);
+  const { selectedConversation, setSelectedConversation, typingConversations } =
+    useConversation();
 
   useEffect(() => {
     // cleanup function (unmounts)
     return () => setSelectedConversation(null);
   }, [setSelectedConversation]);
 
-  useEffect(() => {
-    if (!socket || !selectedConversation) return;
-
-    const handleTyping = ({ senderId }) => {
-      if (senderId === selectedConversation._id) {
-        setTypingConversationId(selectedConversation._id);
-
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-        }
-
-        typingTimeoutRef.current = setTimeout(() => {
-          setTypingConversationId(null);
-        }, 1500);
-      }
-    };
-
-    const handleStopTyping = ({ senderId }) => {
-      if (senderId === selectedConversation._id) {
-        setTypingConversationId(null);
-
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = null;
-        }
-      }
-    };
-
-    socket.on("typing", handleTyping);
-    socket.on("stopTyping", handleStopTyping);
-
-    return () => {
-      socket.off("typing", handleTyping);
-      socket.off("stopTyping", handleStopTyping);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = null;
-      }
-      setTypingConversationId(null);
-    };
-  }, [socket, selectedConversation]);
+  const isTyping =
+    selectedConversation ?
+      Boolean(typingConversations[selectedConversation._id])
+    : false;
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-blue-300/85 shadow-sm shadow-gray-200 backdrop-blur-3xl">
@@ -83,7 +40,7 @@ const MessageContainer = () => {
               </span>
             </div>
           </div>
-          {selectedConversation && (
+          {isTyping && (
             <div className="mx-4 mb-2 flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/95 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-sm shadow-emerald-950/10 backdrop-blur-sm">
               <span>{selectedConversation.fullName} is typing</span>
               <span className="flex items-center gap-1" aria-hidden="true">

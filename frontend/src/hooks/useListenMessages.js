@@ -6,10 +6,17 @@ import useConversation from "../zustand/useConversation";
 
 import notificationSound from "../assets/sounds/notification.mp3";
 
+const typingTimeouts = new Map();
+
 const useListenMessages = () => {
   const { socket } = useSocketContext();
-  const { selectedConversation, setMessages, incrementUnreadCount } =
-    useConversation();
+  const {
+    selectedConversation,
+    setMessages,
+    incrementUnreadCount,
+    setTypingConversation,
+    clearTypingConversation,
+  } = useConversation();
   const { authUser } = useAuthContext();
 
   const updateMessageStatus = (messageIds, updates) => {
@@ -35,6 +42,29 @@ const useListenMessages = () => {
     const sound = new Audio(notificationSound);
     sound.volume = 0.8;
     sound.play().catch(() => {});
+  };
+
+  const scheduleTypingClear = (conversationId) => {
+    if (typingTimeouts.has(conversationId)) {
+      clearTimeout(typingTimeouts.get(conversationId));
+    }
+
+    typingTimeouts.set(
+      conversationId,
+      setTimeout(() => {
+        clearTypingConversation(conversationId);
+        typingTimeouts.delete(conversationId);
+      }, 1500),
+    );
+  };
+
+  const clearTypingState = (conversationId) => {
+    if (typingTimeouts.has(conversationId)) {
+      clearTimeout(typingTimeouts.get(conversationId));
+      typingTimeouts.delete(conversationId);
+    }
+
+    clearTypingConversation(conversationId);
   };
 
   const showBrowserNotification = async (newMessage) => {
@@ -81,6 +111,8 @@ const useListenMessages = () => {
         return;
       }
 
+      clearTypingState(senderId);
+
       playNotificationSound();
 
       if (!isActiveConversation) {
@@ -93,6 +125,30 @@ const useListenMessages = () => {
       setMessages((currentMessages) => [...currentMessages, newMessage]);
     });
 
+    socket?.on("typing", ({ senderId }) => {
+      const senderConversationId = getId(senderId);
+
+      if (
+        !senderConversationId ||
+        senderConversationId === getId(authUser?._id)
+      ) {
+        return;
+      }
+
+      setTypingConversation(senderConversationId);
+      scheduleTypingClear(senderConversationId);
+    });
+
+    socket?.on("stopTyping", ({ senderId }) => {
+      const senderConversationId = getId(senderId);
+
+      if (!senderConversationId) {
+        return;
+      }
+
+      clearTypingState(senderConversationId);
+    });
+
     socket?.on("messageDelivered", ({ messageId, deliveredAt }) => {
       updateMessageStatus([messageId], { deliveredAt });
     });
@@ -103,13 +159,20 @@ const useListenMessages = () => {
 
     return () => {
       socket?.off("newMessage");
+      socket?.off("typing");
+      socket?.off("stopTyping");
       socket?.off("messageDelivered");
       socket?.off("messagesSeen");
+
+      typingTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+      typingTimeouts.clear();
     };
   }, [
     authUser?._id,
     incrementUnreadCount,
+    clearTypingConversation,
     selectedConversation?._id,
+    setTypingConversation,
     setMessages,
     socket,
   ]);

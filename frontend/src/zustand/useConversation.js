@@ -29,9 +29,25 @@ const useConversation = create((set) => ({
 
       return { unreadCounts: nextUnreadCounts };
     }),
-  typingConversationId: null,
-  setTypingConversationId: (conversationId) =>
-    set({ typingConversationId: conversationId }),
+  typingConversations: {},
+  setTypingConversation: (conversationId) =>
+    set((state) => ({
+      typingConversations: {
+        ...state.typingConversations,
+        [conversationId]: true,
+      },
+    })),
+  clearTypingConversation: (conversationId) =>
+    set((state) => {
+      if (!state.typingConversations[conversationId]) {
+        return state;
+      }
+
+      const nextTypingConversations = { ...state.typingConversations };
+      delete nextTypingConversations[conversationId];
+
+      return { typingConversations: nextTypingConversations };
+    }),
 }));
 
 export default useConversation;
