@@ -48,33 +48,29 @@ const Sidebar = () => {
           </p>
         </div>
       </div>
-      <div className="mb-3 rounded-2xl border border-sky-200 bg-white/70 px-3 py-2 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-900">
-              Notifications
-            </p>
-            <p className="text-[11px] text-slate-600">
-              {notificationPermission === "granted" ?
-                "Browser notifications enabled"
-              : notificationPermission === "denied" ?
-                "Permission blocked in this browser"
-              : notificationPermission === "unsupported" ?
-                "This browser does not support notifications"
-              : "Enable browser notifications for unread messages"}
-            </p>
-          </div>
-          {notificationPermission !== "granted" &&
-            notificationPermission !== "unsupported" && (
+      {notificationPermission !== "granted" &&
+        notificationPermission !== "unsupported" && (
+          <div className="mb-3 rounded-2xl border border-sky-200 bg-white/70 px-3 py-2 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-900">
+                  Notifications
+                </p>
+                <p className="text-[11px] text-slate-600">
+                  {notificationPermission === "denied" ?
+                    "Permission blocked in this browser"
+                  : "Enable browser notifications for unread messages"}
+                </p>
+              </div>
               <button
                 type="button"
                 className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold text-white transition hover:bg-sky-400"
                 onClick={enableNotifications}>
                 Enable
               </button>
-            )}
-        </div>
-      </div>
+            </div>
+          </div>
+        )}
       <SearchInput />
       <div className="divider px-3"></div>
       <Conversations />

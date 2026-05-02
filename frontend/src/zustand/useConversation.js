@@ -29,6 +29,9 @@ const useConversation = create((set) => ({
 
       return { unreadCounts: nextUnreadCounts };
     }),
+  typingConversationId: null,
+  setTypingConversationId: (conversationId) =>
+    set({ typingConversationId: conversationId }),
 }));
 
 export default useConversation;

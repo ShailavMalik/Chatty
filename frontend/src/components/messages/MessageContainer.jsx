@@ -8,9 +8,12 @@ import { useAuthContext } from "../../context/AuthContext";
 import { useSocketContext } from "../../context/SocketContext";
 
 const MessageContainer = () => {
-  const { selectedConversation, setSelectedConversation } = useConversation();
+  const {
+    selectedConversation,
+    setSelectedConversation,
+    setTypingConversationId,
+  } = useConversation();
   const { socket } = useSocketContext();
-  const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
@@ -23,21 +26,21 @@ const MessageContainer = () => {
 
     const handleTyping = ({ senderId }) => {
       if (senderId === selectedConversation._id) {
-        setIsTyping(true);
+        setTypingConversationId(selectedConversation._id);
 
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
         }
 
         typingTimeoutRef.current = setTimeout(() => {
-          setIsTyping(false);
+          setTypingConversationId(null);
         }, 1500);
       }
     };
 
     const handleStopTyping = ({ senderId }) => {
       if (senderId === selectedConversation._id) {
-        setIsTyping(false);
+        setTypingConversationId(null);
 
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
@@ -56,7 +59,7 @@ const MessageContainer = () => {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
-      setIsTyping(false);
+      setTypingConversationId(null);
     };
   }, [socket, selectedConversation]);
 
@@ -80,7 +83,7 @@ const MessageContainer = () => {
               </span>
             </div>
           </div>
-          {isTyping && (
+          {selectedConversation && (
             <div className="mx-4 mb-2 flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/95 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-sm shadow-emerald-950/10 backdrop-blur-sm">
               <span>{selectedConversation.fullName} is typing</span>
               <span className="flex items-center gap-1" aria-hidden="true">

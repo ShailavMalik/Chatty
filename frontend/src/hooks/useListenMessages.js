@@ -13,9 +13,11 @@ const useListenMessages = () => {
   const { authUser } = useAuthContext();
 
   const updateMessageStatus = (messageIds, updates) => {
+    const stringMessageIds = messageIds.map((id) => getId(id));
     setMessages((currentMessages) =>
       currentMessages.map((message) => {
-        if (!messageIds.includes(message._id)) {
+        const messageIdString = getId(message._id);
+        if (!stringMessageIds.includes(messageIdString)) {
           return message;
         }
 
