@@ -65,7 +65,6 @@ const MessageContainer = () => {
       {!selectedConversation ?
         <NoChatSelected />
       : <>
-          {/* Header */}
           <div className="mb-2 flex items-center gap-3 border-b border-white/15 bg-slate-700/75 px-4 py-3 text-sm text-white shadow-sm">
             <button
               type="button"
@@ -82,12 +81,12 @@ const MessageContainer = () => {
             </div>
           </div>
           {isTyping && (
-            <div className="mx-4 mb-2 flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100 shadow-sm backdrop-blur-sm">
+            <div className="mx-4 mb-2 flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/95 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-sm shadow-emerald-950/10 backdrop-blur-sm">
               <span>{selectedConversation.fullName} is typing</span>
               <span className="flex items-center gap-1" aria-hidden="true">
-                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-200" />
-                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-200" />
-                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-200" />
+                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-700" />
+                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-700" />
+                <span className="typing-dot h-1.5 w-1.5 rounded-full bg-emerald-700" />
               </span>
             </div>
           )}
@@ -112,24 +111,3 @@ const NoChatSelected = () => {
     </div>
   );
 };
-
-// STARTER CODE SNIPPET
-// import MessageInput from "./MessageInput";
-// import Messages from "./Messages";
-
-// const MessageContainer = () => {
-// 	return (
-// 		<div className='md:min-w-[450px] flex flex-col'>
-// 			<>
-// 				{/* Header */}
-// 				<div className='bg-slate-500 px-4 py-2 mb-2'>
-// 					<span className='label-text'>To:</span> <span className='text-gray-900 font-bold'>John doe</span>
-// 				</div>
-
-// 				<Messages />
-// 				<MessageInput />
-// 			</>
-// 		</div>
-// 	);
-// };
-// export default MessageContainer;

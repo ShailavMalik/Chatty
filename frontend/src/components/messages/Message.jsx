@@ -23,14 +23,14 @@ const Message = ({ message }) => {
     if (!fromMe) return null;
 
     if (isSeen) {
-      return <BiCheckDouble className="text-sm text-sky-300" />;
+      return <BiCheckDouble className="text-sm text-emerald-200" />;
     }
 
     if (isDelivered) {
-      return <BiCheckDouble className="text-sm text-slate-300" />;
+      return <BiCheckDouble className="text-sm text-slate-200" />;
     }
 
-    return <BiCheck className="text-sm text-slate-300" />;
+    return <BiCheck className="text-sm text-slate-200" />;
   };
 
   return (
@@ -50,9 +50,18 @@ const Message = ({ message }) => {
         className={`chat-bubble text-white ${bubbleBgColor} ${shakeClass} pb-2`}>
         {message.message}
       </div>
-      <div className="chat-footer flex items-center gap-1 text-xs opacity-50">
-        {formattedTime}
-        {renderReceipt()}
+      <div className="chat-footer flex items-center gap-1 text-xs text-white/75">
+        <span>{formattedTime}</span>
+        {fromMe && (
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 ${
+              isSeen ? "bg-emerald-500/20"
+              : isDelivered ? "bg-white/10"
+              : "bg-white/10"
+            }`}>
+            {renderReceipt()}
+          </span>
+        )}
       </div>
     </div>
   );

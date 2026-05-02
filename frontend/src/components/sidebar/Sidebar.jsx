@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Conversations from "./Conversations";
 import LogoutButton from "./LogoutButton";
 import SearchInput from "./SearchInput";
@@ -5,8 +6,23 @@ import { useAuthContext } from "../../context/AuthContext";
 
 const Sidebar = () => {
   const { authUser } = useAuthContext();
+  const [notificationPermission, setNotificationPermission] = useState(() =>
+    typeof Notification === "undefined" ? "unsupported" : (
+      Notification.permission
+    ),
+  );
   const avatarFallback =
     "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 216 216'%3E%3Crect width='216' height='216' rx='108' fill='%23dbeafe'/%3E%3Ccircle cx='108' cy='92' r='46' fill='%23f8dcc6'/%3E%3Cpath d='M62 92c4-28 28-50 46-50 22 0 46 18 50 46-7-6-18-10-27-10-13 0-20 5-23 9-4-4-10-9-21-9-10 0-17 4-25 14z' fill='%231f2937'/%3E%3Cellipse cx='90' cy='96' rx='8' ry='10' fill='%23fff'/%3E%3Cellipse cx='126' cy='96' rx='8' ry='10' fill='%23fff'/%3E%3Ccircle cx='90' cy='98' r='4' fill='%23111827'/%3E%3Ccircle cx='126' cy='98' r='4' fill='%23111827'/%3E%3Cpath d='M98 115c6 4 14 4 20 0' fill='none' stroke='%23111827' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M80 140c8-10 18-15 28-15s20 5 28 15c-11 9-21 13-28 13s-17-4-28-13z' fill='%232563eb'/%3E%3C/svg%3E";
+
+  const enableNotifications = async () => {
+    if (typeof Notification === "undefined") {
+      setNotificationPermission("unsupported");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+  };
 
   return (
     <div className="flex h-full w-full min-h-0 flex-col border-r border-slate-500 bg-blue-100 p-4 shadow-lg shadow-black md:w-80 lg:w-96">
@@ -30,6 +46,33 @@ const Sidebar = () => {
           <p className="truncate text-xs text-slate-500">
             @{authUser?.username}
           </p>
+        </div>
+      </div>
+      <div className="mb-3 rounded-2xl border border-sky-200 bg-white/70 px-3 py-2 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-slate-900">
+              Notifications
+            </p>
+            <p className="text-[11px] text-slate-600">
+              {notificationPermission === "granted" ?
+                "Browser notifications enabled"
+              : notificationPermission === "denied" ?
+                "Permission blocked in this browser"
+              : notificationPermission === "unsupported" ?
+                "This browser does not support notifications"
+              : "Enable browser notifications for unread messages"}
+            </p>
+          </div>
+          {notificationPermission !== "granted" &&
+            notificationPermission !== "unsupported" && (
+              <button
+                type="button"
+                className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold text-white transition hover:bg-sky-400"
+                onClick={enableNotifications}>
+                Enable
+              </button>
+            )}
         </div>
       </div>
       <SearchInput />

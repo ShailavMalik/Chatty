@@ -10,6 +10,25 @@ const useConversation = create((set) => ({
       messages:
         typeof messages === "function" ? messages(state.messages) : messages,
     })),
+  unreadCounts: {},
+  incrementUnreadCount: (conversationId) =>
+    set((state) => ({
+      unreadCounts: {
+        ...state.unreadCounts,
+        [conversationId]: (state.unreadCounts[conversationId] || 0) + 1,
+      },
+    })),
+  clearUnreadCount: (conversationId) =>
+    set((state) => {
+      if (!state.unreadCounts[conversationId]) {
+        return state;
+      }
+
+      const nextUnreadCounts = { ...state.unreadCounts };
+      delete nextUnreadCounts[conversationId];
+
+      return { unreadCounts: nextUnreadCounts };
+    }),
 }));
 
 export default useConversation;

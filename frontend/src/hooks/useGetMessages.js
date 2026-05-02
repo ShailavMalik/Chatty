@@ -5,7 +5,8 @@ import { buildApiUrl } from "../utils/runtimeConfig";
 
 const useGetMessages = () => {
   const [loading, setLoading] = useState(false);
-  const { messages, setMessages, selectedConversation } = useConversation();
+  const { messages, setMessages, selectedConversation, clearUnreadCount } =
+    useConversation();
 
   useEffect(() => {
     const getMessages = async () => {
@@ -20,6 +21,7 @@ const useGetMessages = () => {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setMessages(data);
+        clearUnreadCount(selectedConversation._id);
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -28,7 +30,7 @@ const useGetMessages = () => {
     };
 
     if (selectedConversation?._id) getMessages();
-  }, [selectedConversation?._id, setMessages]);
+  }, [clearUnreadCount, selectedConversation?._id, setMessages]);
 
   return { messages, loading };
 };
